@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Love Animation</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: radial-gradient(circle, #ff99cc 0%, #ff66b2 100%);
+      overflow: auto;
+      font-family: 'Arial', sans-serif;
+      transition: background 1s;
+      flex-direction: column;
+    }
+
+    #loginContainer {
+      display: flex; 
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 40px;
+      background-color: rgba(255, 255, 255, 0.85);
+      border-radius: 15px;
+      box-shadow: 0 5 25px rgba(255, 20, 147, 0.4);
+      text-align: center;
+      width: 90%;
+      max-width: 450px;
+      transition: opacity 0.5s ease-in-out; /* Thêm transition */
+    }
+
+    #loginContainer h2 {
+       color: #ff3366;
+       margin-bottom: 25px;
+    }
+
+    .form-group { 
+        width: 100%;
+        margin-bottom: 15px;
+        text-align: left; 
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+    #loginContainer input[type="text"],
+    #loginContainer input[type="date"],
+    #loginContainer select { 
+      width: 100%; 
+      padding: 12px 15px; 
+      border: 1px solid #ffcccc;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      background-color: #fff;
+      color: #333;
+    }
+
+     #loginContainer input:focus,
+     #loginContainer select:focus {
+       outline: none;
+       border-color: #ff66b2;
+       box-shadow: 0 0 8px rgba(255, 102, 178, 0.6);
+     }
+
+    #loginButton {
+      padding: 13px 35px;
+      font-size: 17px;
+      background: linear-gradient(45deg, #ff3366, #ff1493);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(255, 20, 147, 0.4);
+      margin-top: 20px;
+      font-weight: bold; 
+    }
+
+    #loginButton:hover {
+       transform: scale(1.05);
+       box-shadow: 0 8px 20px rgba(255, 20, 147, 0.7);
+    }
+
+    #loginError {
+      color: #d8000c;
+      background-color: #ffdddd;
+      border: 1px solid #ffacac;
+      border-radius: 5px;
+      padding: 8px 15px;
+      margin-top: 15px;
+      font-size: 14px;
+      min-height: 20px;
+      width: calc(100% - 30px);
+      box-sizing: border-box;
+      display: none;
+    }
+
+    #loginError.show {
+      display: block;
+    }
+    
+    .love-container {
+      position: relative;
+      text-align: center;
+      padding: 20px;
+      transition: opacity 0.5s ease-in-out;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+    }
+    
+    .love-text {
+      font-size: clamp(60px, 15vw, 120px);
+      font-weight: 900;
+      color: white;
+      text-shadow: 0 0 20px #ff0000, 0 0 40px #ff69b4;
+      margin-bottom: 30px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    
+    .love-text:hover {
+      transform: scale(1.05);
+    }
+    
+    .heart {
+      position: absolute;
+      color: #ff3366;
+      font-size: 30px;
+      animation: rise 4s linear forwards;
+      pointer-events: none;
+    }
+    
+    @keyframes rise {
+      0% { transform: translateY(0) scale(1); opacity: 1; }
+      100% { transform: translateY(-200px) scale(0.5); opacity: 0; }
+    }
+    
+    .heart-btn {
+      padding: 15px 30px;
+      font-size: clamp(16px, 4vw, 18px);
+      background: linear-gradient(45deg, #ff3366, #ff1493);
+      color: white;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 0 20px rgba(255, 20, 147, 0.5);
+      margin: 10px auto;
+    }
+    
+    .heart-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(255, 20, 147, 0.8);
+    }
+    
+    .book-container {
+      perspective: 2000px;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.5s ease-in-out;
+      width: 90%;
+      max-width: 800px;
+      height: 500px;
+      display: none;
+      z-index: 100;
+      filter: drop-shadow(0 10px 20px rgba(255, 51, 102, 0.3));
+      opacity: 0;
+    }
+    
+    .book-cover {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      transform-style: preserve-3d;
+      transition: transform 1s;
+    }
+
+    .book-spine {
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 15px;
+      height: 100%;
+      background: linear-gradient(to right, #cc2a42, #ff3366);
+      transform: translateX(-50%) rotateY(90deg);
+      transform-origin: center;
+      box-shadow: -5px 0 15px rgba(0,0,0,0.3);
+      z-index: 5;
+    }
+    
+    .book-pages {
+      position: relative;
+      display: flex;
+      width: 100%;
+      height: 100%;
+      background: white;
+      border: 5px solid #ff3366;
+      border-radius: 5px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      transform-style: preserve-3d;
+    }
+    
+    .page {
+      background: white;
+      padding: 20px;
+      box-sizing: border-box;
+      border: 1px solid #ffcccc;
+      width: 50%;
+      height: 100%;
+      overflow-y: auto;
+      position: absolute;
+      display: none;
+      transition: transform 0.8s ease-in-out;
+      transform-style: preserve-3d;
+      backface-visibility: hidden;
+    }
+
+    .page.active {
+      display: block;
+    }
+    
+    .page.left-page {
+      left: 0;
+      transform-origin: right center;
+    }
+    
+    .page.right-page {
+      left: 50%;
+      transform-origin: left center;
+    }
+    
+    .page img {
+      width: 100%;
+      height: 70%;
+      object-fit: cover;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+    .page-content {
+      padding: 10px;
+      text-align: center;
+      font-size: 16px;
+      line-height: 1.6;
+    }
+    
+    .page.flipping {
+      z-index: 10;
+    }
+    
+    .left-page.flipping {
+      transform: rotateY(-180deg);
+    }
+    
+    .right-page.flipping {
+      transform: rotateY(180deg);
+    }
+    
+    .page-nav {
+      position: absolute;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .arrow-btn {
+      width: 50px;
+      height: 80px;
+      background: rgba(255, 51, 102, 0.7);
+      color: white;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      pointer-events: auto;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 5px;
+      opacity: 0.7;
+    }
+
+    .arrow-btn:hover {
+      background: rgba(255, 20, 147, 0.9);
+      opacity: 1;
+      transform: scale(1.1);
+    }
+
+    .prev-btn {
+      margin-left: 20px;
+    }
+
+    .next-btn {
+      margin-right: 20px;
+    }
+
+    .arrow-btn.hidden {
+      visibility: hidden;
+    }
+
+    .nav-buttons {
+      position: fixed;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 101;
+      justify-content: center;
+      width: 100%;
+      max-width: 800px;
+      margin-top: 20px;
+      opacity: 0;
+      transition: opacity 0.5s ease-in-out;
+    }
+    
+    .nav-btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #ff3366;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .nav-btn:hover {
+      background: #ff1493;
+      transform: scale(1.05);
+    }
+
+    .letter-wrapper {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      transition: opacity 0.5s ease-in-out;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 90%;
+      max-width: 800px;
+      z-index: 100;
+    }
+    
+    .letter-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 30px rgba(255, 51, 102, 0.3);
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+      text-align: left;
+    }
+    
+    .letter-content {
+      font-size: 18px;
+      line-height: 1.6;
+      color: #333;
+    }
+    
+    .letter-footer {
+      margin-top: 20px;
+      text-align: center;
+    }
+    
+    @media (max-width: 768px) {
+      .book-pages {
+        flex-direction: column;
+      }
+      .page { width: 50%; height: 100%; }
+      .page.right-page { left: 50%; top: 0; }
+      .book-container { max-width: 95%; height: 450px; }
+      .page img { height: 60%; }
+      .arrow-btn { width: 40px; height: 60px; font-size: 18px; }
+      .prev-btn { margin-left: 10px; }
+      .next-btn { margin-right: 10px; }
+      .letter-container { padding: 20px; max-height: 70vh; }
+      .nav-buttons { bottom: 20px; }
+      #loginContainer { padding: 20px; max-width: 90%; } 
+      #loginContainer input[type="text"],
+      #loginContainer input[type="date"],
+      #loginContainer select { font-size: 15px; padding: 10px 12px; }
+      #loginButton { font-size: 16px; padding: 12px 30px; }
+    }
+    @media (max-width: 480px) {
+       .book-container { height: 400px; }
+       .page-content { font-size: 14px; }
+       #loginContainer { padding: 15px; }
+       .form-group label { font-size: 13px;}
+       #loginContainer input[type="text"],
+       #loginContainer input[type="date"],
+       #loginContainer select { font-size: 14px; padding: 9px 10px; }
+       #loginButton { font-size: 15px; padding: 10px 25px; }
+       .letter-content { font-size: 16px;}
+       .nav-btn { font-size: 14px; padding: 8px 15px;}
+       .nav-buttons { gap: 10px; }
+     }
+  </style>
+</head>
+<body>
+    <div id="loginContainer">
+        <h2>Xác Nhận Thông Tin Tình Yêu</h2>
+        <div class="form-group">
+            <label for="NicknameEm">Biệt danh của em</label>
+            <input type="text" id="NicknameEm" placeholder="Biệt danh mà anh hay gọi em đó">
+        </div>
+
+        <div class="form-group">
+            <label for=""dob">Sinh nhật em (Năm-Tháng-Ngày):</label>
+            <input type="date" id="dob">
+        </div>
+
+        <div class="form-group">
+            <label for="favouriteFood">Món ăn yêu thích của em:</label>
+            <select id="favouriteFood">
+                <option value=""disabled selected>-- Chọn một món nha --</option>
+                <option value="trasua">Trà Sữa</option>
+                <option value="garan">Gà Rán</option>
+                <option value="vienchien">Viên Chiên</option>
+                <option value="bunbo">Bún Bò</option>
+            </select>
+        </div>
+
+        <button id="loginButton">Cùng khám phá nha!</button>
+        <p id="loginError"></p> 
+      </div>
+    
+  <div class="love-container" id="loveContainer">
+    <div class="love-text" id="loveText">LOVE</div>
+    <h2>Anh có yêu em ko?</h2>
+    <button class="heart-btn" id="heartBtn">Bấm vào đây nếu anh yêu em</button>
+  </div>
+  
+  <div class="book-container" id="bookContainer">
+    <div class="book-cover">
+      <div class="book-spine"></div>
+      <div class="book-pages">
+        <div class="page-nav">
+          <button class="arrow-btn prev-btn" id="prevPage">❮</button>
+          <button class="arrow-btn next-btn" id="nextPage">❯</button>
+        </div>
+        <div class="page left-page page-1 active">
+          <img src="https://i.imgur.com/HwEIZnW.jpg" alt="Trang 1">
+          <div class="page-content">
+            <h3>Một số hình ảnh của bé iu hồi quân sự hihi :></h3>
+          </div>
+        </div>
+        <div class="page right-page page-2 active">
+          <img src="https://i.imgur.com/H1NslJc.jpg" alt="Trang 2">
+          <div class="page-content">
+            <h3>Đây nữa nè :></h3>
+          </div>
+        </div>
+        <div class="page left-page page-3">
+          <img src="https://i.imgur.com/9iI4Fgf.jpg" alt="Trang 3">
+          <div class="page-content">
+            <h3>Buổi gặp mặt đầu tiên của 2 đứa hihi</h3>
+            <p>Cũng biết chọn phim kinh dị để dễ skinship đó chứ...</p>
+          </div>
+        </div>
+        <div class="page right-page page-4">
+          <img src="https://i.imgur.com/StKqzRH.jpg" alt="Trang 4">
+          <div class="page-content">
+            <h3>Bức hình đầu tiên của anh</h3>
+            <p>Khi em nhìn thấy bức ảnh này, em đã phải thốt lên...</p>
+          </div>
+        </div>
+        <div class="page left-page page-5">
+          <img src="https://i.imgur.com/qlGlVLG.jpg" alt="Trang 5">
+          <div class="page-content">
+            <h3>Noel đầu tiên của 2 đứa</h3>
+            <p>2 đứa cũng bày trò chụp hình up story nè</p>
+          </div>
+        </div>
+        <div class="page right-page page-6">
+          <img src="https://i.imgur.com/whjwmHj.jpg" alt="Trang 6">
+          <div class="page-content">
+            <h3>Đây nữa nè :></h3>
+          </div>
+        </div>
+        <div class="page left-page page-7">
+          <img src="https://i.imgur.com/8GZNCNT.jpg" alt="Trang 7">
+          <div class="page-content">
+            <h3>Bức hình thứ 2 của anh gửi em nè :></h3>
+            <p>Thật sự là người iu của em rất đẹp trai đó nha</p>
+          </div>
+        </div>
+        <div class="page right-page page-8">
+          <img src="https://i.imgur.com/OAKq9Zn.jpg" alt="Trang 8">
+          <div class="page-content">
+            <h3>2 đứa cũng bày đặt đu trend mixue đó</h3>
+            <p>Cũng đi lĩnh giấy chứng nhận tình iu hihi</p>
+          </div>
+        </div>
+        <div class="page left-page page-9">
+          <img src="https://i.imgur.com/H2gI6EC.jpg" alt="Trang 9">
+          <div class="page-content">
+            <h3>Quà anh tặng em hôm 8/3 nè</h3>
+            <p>Hôm đó 2 đứa đi ăn viên chiên hehe</p>
+          </div>
+        </div>
+        <div class="page right-page page-10">
+          <img src="https://i.imgur.com/hz0G77X.jpg" alt="Trang 10">
+          <div class="page-content">
+            <h3>Hình khác của bé iu nè</h3>
+            <p>Em phải chọn lọc đó nha dù em dùng filter hihi</p>
+          </div>
+        </div>
+        <div class="page left-page page-11">
+          <img src="https://i.imgur.com/l04SoVe.jpg" alt="Trang 11">
+          <div class="page-content">
+            <h3>Còn đây là hình của chồng iu em nè</h3>
+            <p>Rất đẹp trai đó nha :></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-buttons" id="navButtons" style="display: none;">
+    <button class="nav-btn" id="backToLove">Quay lại</button>
+    <button class="nav-btn" id="toLetter">Xem thư</button>
+  </div>
+  
+  <div class="letter-wrapper" id="letterWrapper">
+    <div class="letter-container" id="letterContainer">
+      <div class="letter-content">
+        <h2 style="font-size: 28px; color: #ff3366; margin-bottom: 20px;">Gửi anh, người em yêu nhất...</h2>
+        <p style="font-size: 16px; line-height: 1.8; margin-bottom: 15px;">
+          Từ khi có anh, thế giới của em ngập tràn hạnh phúc. Mỗi cái ôm của anh giúp mọi mệt mỏi trong em tan biến, 
+          một nụ cười dịu dàng và những lời động viên an ủi khi em buồn, và điều đặc biệt nhất chính là cách anh nhìn em 
+          bằng ánh mắt dịu dàng nhất trên đời.
+        </p>
+        <p style="font-size: 16px; font-weight: bold; margin: 25px 0;">
+          Anh là món quà tuyệt vời nhất cuộc đời em.
+        </p>
+        <p style="font-size: 16px; margin-bottom: 10px;">Em yêu những khoảnh khắc:</p>
+        <ul style="font-size: 16px; line-height: 2; margin-left: 20px; list-style-type: none;">
+          <li>❤️ Khi anh âu yếm gọi em bằng biệt danh ngọt ngào</li>
+          <li>❤️ Khi hai ta trao nhau những nụ hôn ngọt ngào</li>
+          <li>❤️ Khi chúng ta ôm nhau ngủ</li>
+        </ul>
+        <p style="font-size: 16px; line-height: 1.8; margin: 25px 0;">
+          Em chỉ muốn mãi được nép vào lòng anh, yêu anh nhiều hơn. Em muốn cùng anh viết tiếp câu chuyện tình yêu này - 
+          một câu chuyện không có hồi kết, nơi mỗi ngày qua đi lại thêm ngọt ngào hơn ngày hôm trước. 
+          Cảm ơn anh vì đã là người đặc biệt nhất trong cuộc đời em!
+        </p>
+        <div style="margin-top: 30px;">
+          <p style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">Yêu anh,</p>
+          <p style="font-size: 16px;">Hôm nay, ngày mai và mãi mãi...</p>
+        </div>
+      </div>
+    </div>
+    <div class="letter-footer">
+      <button class="nav-btn" id="backToBook">Quay lại</button>
+    </div>
+  </div>
+  
+  <script>
+    const loginContainer = document.getElementById('loginContainer');
+    const NicknameEmInput = document.getElementById('NicknameEm');
+    const dobInput = document.getElementById('dob');
+    const favouriteFoodSelect = document.getElementById('favouriteFood');
+    const loginButton = document.getElementById('loginButton');
+    const loginError = document.getElementById('loginError');
+
+    const loveContainer = document.getElementById("loveContainer");
+    const bookContainer = document.getElementById("bookContainer");
+    const navButtons = document.getElementById("navButtons");
+    const letterWrapper = document.getElementById("letterWrapper");
+    const bookCover = document.getElementById('bookCover');
+
+    const pages = document.querySelectorAll('.page');
+    let currentPair = 0;
+
+    loginButton.addEventListener('click', () => {
+      const enteredNicknameEm = NicknameEmInput.value.trim().toLowerCase(); 
+      const enteredDob = dobInput.value; 
+      const enteredFood = favouriteFoodSelect.value;
+
+      const correctNicknameEm =["bé iu", "vợ iu", "em bé"];
+      const correctDob = "2004-08-10";
+      const correctFoods = ["garan", "vienchien"];
+
+      const isNicknameEmCorrect = correctNicknameEm.includes(enteredNicknameEm);
+      const isDobCorrect = enteredDob === correctDob;
+      const isFoodCorrect = correctFoods.includes(enteredFood);
+
+      console.log("Nickname:", enteredNicknameEm, "Correct:", isNicknameEmCorrect);
+      console.log("DOB:", enteredDob, "Correct:", isDobCorrect);
+      console.log("Food:", enteredFood, "Correct:", isFoodCorrect);
+
+      if (isNicknameEmCorrect && isDobCorrect && isFoodCorrect) {
+        console.log("Chuyển sang loveContainer");
+        loginError.classList.remove('show'); 
+        loginError.textContent = '';
+
+        loginContainer.style.opacity = '0';
+        setTimeout(() => {
+            loginContainer.style.display = 'none';
+            fadeIn(loveContainer, 'flex'); 
+        }, 500); 
+
+      } else {
+        loginError.textContent = 'Oops, có thông tin nào đó chưa đúng rồi anh iu ơi! Kiểm tra lại nha :<';
+        loginError.classList.add('show');
+
+        loginContainer.style.animation = 'shake 0.5s';
+        setTimeout(() => loginContainer.style.animation = '', 500);
+      }
+    });
+
+    try { // Dùng try-catch phòng trường hợp styleSheet[0] không tồn tại hoặc lỗi khác
+        const styleSheet = document.styleSheets[0];
+        let shakeRuleExists = false;
+        for(let i=0; i < styleSheet.cssRules.length; i++) {
+            if(styleSheet.cssRules[i].name === 'shake') {
+                shakeRuleExists = true;
+                break;
+            }
+        }
+        if (!shakeRuleExists) {
+            styleSheet.insertRule(`
+              @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25%, 75% { transform: translateX(-6px); }
+                50% { transform: translateX(6px); }
+              }
+            `, styleSheet.cssRules.length);
+        }
+    } catch (e) {
+        console.error("Không thể thêm keyframes 'shake':", e);
+    }
+
+    // Hiệu ứng trái tim
+    document.getElementById("loveText").addEventListener("click", () => {
+      document.getElementById("loveText").innerHTML = "❤️";
+      for (let i = 0; i < 20; i++) {
+        setTimeout(() => {
+          let heart = document.createElement("div");
+          heart.classList.add("heart");
+          heart.innerHTML = "❤️";
+          heart.style.left = Math.random() * window.innerWidth + "px";
+          heart.style.top = window.innerHeight + "px";
+          document.body.appendChild(heart);
+          setTimeout(() => heart.remove(), 4000);
+        }, i * 100);
+      }
+      setTimeout(() => {
+        document.getElementById("loveText").innerHTML = "LOVE";
+      }, 3000);
+    });
+    
+    // Hàm chuyển đổi
+    function fadeOut(element, callback) {
+        if (!element) return;
+      element.style.opacity = '0';
+      setTimeout(() => {
+        element.style.display = 'none';
+        if (callback) callback();
+      }, 500);
+    }
+    
+    function fadeIn(element, displayType = 'flex') {
+        if (!element) return;
+      element.style.display = displayType;
+      requestAnimationFrame(() => {
+      setTimeout(() => {
+       element.style.opacity = '1';
+      }, 10);
+      });
+    }
+    
+    function showPair(index) {
+      pages.forEach((page, i) => {
+        const isVisible = i === index * 2 || i === index * 2 + 1;
+        page.classList.toggle('active', isVisible);
+        if (isVisible) {
+            page.style.transform = 'rotateY(0deg)';
+        }
+      });
+      const prevBtn =
+      document.getElementById('prevPage');
+      const nextBtn =
+      document.getElementById('nextPage');
+      if(prevBtn) prevBtn.classList.toggle('hidden', index === 0);
+      if(nextBtn) nextBtn.classList.toggle('hidden', index === Math.floor((pages.length - 1) / 2));
+    }
+
+    function flipPage(direction) {
+      const totalPairs = Math.ceil(pages.length / 2);
+      const leftPageIndex = currentPair * 2;
+      const rightPageIndex = currentPair * 2 + 1;
+      if (direction === 'next' && currentPair < totalPairs - 1) {
+        const rightPage = pages[rightPageIndex];
+        if (rightPage) {
+          rightPage.classList.add('flipping');
+          rightPage.style.transform = 'rotateY(-180deg)';
+          setTimeout(() => {
+            rightPage.classList.remove('flipping', 'active');
+            currentPair++;
+            showPair(currentPair);
+          }, 800);
+        }
+      } else if (direction === 'prev' && currentPair > 0) {
+        const targetLeftPageIndex = (currentPair - 1) * 2;
+        const targetRightPageIndex = targetLeftPageIndex + 1;
+        const targetLeftPage = pages[targetLeftPageIndex];
+        const targetRightPage = pages[targetRightPageIndex];
+
+        const currentLeftPage = pages[leftPageIndex];
+        const currentRightPage = pages[rightPageIndex];
+        if(currentLeftPage) currentLeftPage.classList.remove('active');
+        if(currentRightPage) currentRightPage.classList.remove('active');
+
+        if (targetLeftPage) {
+            if(targetRightPage) {
+                    targetRightPage.classList.add('active', 'flipping');
+                    targetRightPage.style.transform = 'rotateY(-180deg)';
+            }
+        requestAnimationFrame(() => {
+        setTimeout(() => {
+            if(targetRightPage) {
+                            targetRightPage.style.transform = 'rotateY(0deg)';
+                        }
+                        targetLeftPage.classList.add('active');
+
+setTimeout(() => {
+    if(targetRightPage) targetRightPage.classList.remove('flipping');
+    currentPair--;
+    showPair(currentPair); 
+}, 800);
+}, 10);
+});
+}
+}
+}
+    const nextPageBtn =
+    document.getElementById("nextPage");
+    const prevPageBtn =
+    document.getElementById("prevPage");
+    if(nextPageBtn) nextPageBtn.addEventListener("click", () => flipPage("next"));
+    if(prevPageBtn) prevPageBtn.addEventListener("click", () => flipPage("prev"));
+
+    const heartBtn =
+    document.getElementById("heartBtn");
+    if(heartBtn) heartBtn.addEventListener("click", () => {
+      fadeOut(loveContainer, () => {
+        fadeIn(bookContainer, 'block');
+        fadeIn(navButtons, 'flex');
+        showPair(0);
+      });
+    });
+    
+    const backToLoveBtn = document.getElementById("backToLove");
+     if(backToLoveBtn) backToLoveBtn.addEventListener("click", () => {
+      fadeOut(bookContainer);
+      fadeOut(navButtons, () => {
+        fadeIn(loveContainer, 'flex');
+      });
+       if(bookCover) bookCover.style.transform = 'rotateY(0)';
+    });
+    
+    const toLetterBtn = document.getElementById("toLetter");
+    if(toLetterBtn) toLetterBtn.addEventListener("click", () => {
+      if(bookCover) bookCover.style.transform = 'rotateY(-180deg)';
+      setTimeout(() => {
+        fadeOut(bookContainer);
+        fadeOut(navButtons, () => {
+            fadeIn(letterWrapper, 'flex');
+        });
+      }, 500);
+    });
+    
+    const backToBookBtn = document.getElementById("backToBook");
+    if(backToBookBtn) backToBookBtn.addEventListener("click", () => {
+      fadeOut(letterWrapper, () => {
+        fadeIn(bookContainer, 'block');
+        fadeIn(navButtons, 'flex');
+         if (bookCover && bookCover.style.transform === 'rotateY(-180deg)') {
+             bookCover.style.transform = 'rotateY(0deg)';
+         }
+         showPair(currentPair);
+      });
+    });
+  </script>
+</body>
+</html>
